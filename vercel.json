@@ -4,5 +4,11 @@
       "root": "frontend",
       "framework": "vite"
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "service": "frontend"
+    }
+  ]
 }

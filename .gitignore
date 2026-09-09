@@ -1,27 +1,29 @@
-# Dependencies
+# Dependencies (Root, Frontend, Backend)
 node_modules/
+**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Build outputs
+# Build Outputs & Bundles
 dist/
+**/dist/
 dist-ssr/
 build/
+**/build/
 .vercel/
+out/
 
-# OS and IDE files
+
+
+# OS & Editor Files
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
-
-# Environment files and secrets (NEVER commit secrets to Git)
-.env
-.env*
-!.env.example
-*.env
-**/.env
-**/.env.*
-!**/.env.example
-
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

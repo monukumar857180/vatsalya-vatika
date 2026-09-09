@@ -1,11 +1,21 @@
 import api from './api';
 import { GalleryItem, ApiResponse } from '../types';
+import { fallbackGallery } from './fallbackData';
 
 export const galleryService = {
   getGallery: async (): Promise<GalleryItem[]> => {
-    const res = await api.get<ApiResponse<GalleryItem[]>>('/gallery');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<GalleryItem[]>>('/gallery');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackGallery;
+    } catch {
+      return fallbackGallery;
+    }
   },
+
 
   createGalleryItem: async (data: Partial<GalleryItem>): Promise<GalleryItem> => {
     const res = await api.post<ApiResponse<GalleryItem>>('/gallery', data);

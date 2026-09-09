@@ -1,11 +1,21 @@
 import api from './api';
 import { ReviewItem, ApiResponse } from '../types';
+import { fallbackReviews } from './fallbackData';
 
 export const reviewService = {
   getPublicReviews: async (): Promise<ReviewItem[]> => {
-    const res = await api.get<ApiResponse<ReviewItem[]>>('/reviews');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<ReviewItem[]>>('/reviews');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackReviews;
+    } catch {
+      return fallbackReviews;
+    }
   },
+
 
   getAllReviews: async (): Promise<ReviewItem[]> => {
     const res = await api.get<ApiResponse<ReviewItem[]>>('/reviews/all');

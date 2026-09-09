@@ -1,12 +1,22 @@
 import api from './api';
 import { CarouselImage, ApiResponse } from '../types';
+import { fallbackCarouselImages } from './fallbackData';
 
 export const carouselService = {
   // Public & Admin: Get all images
   getImages: async (): Promise<CarouselImage[]> => {
-    const res = await api.get<ApiResponse<CarouselImage[]>>('/carousel');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<CarouselImage[]>>('/carousel');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackCarouselImages;
+    } catch {
+      return fallbackCarouselImages;
+    }
   },
+
 
   // Admin: Add new image
   addImage: async (data: Partial<CarouselImage>): Promise<CarouselImage> => {

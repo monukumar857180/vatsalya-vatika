@@ -1,11 +1,21 @@
 import api from './api';
 import { FacilityItem, ApiResponse } from '../types';
+import { fallbackFacilities } from './fallbackData';
 
 export const facilityService = {
   getFacilities: async (): Promise<FacilityItem[]> => {
-    const res = await api.get<ApiResponse<FacilityItem[]>>('/facilities');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<FacilityItem[]>>('/facilities');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackFacilities;
+    } catch {
+      return fallbackFacilities;
+    }
   },
+
 
   createFacility: async (data: Partial<FacilityItem>): Promise<FacilityItem> => {
     const res = await api.post<ApiResponse<FacilityItem>>('/facilities', data);

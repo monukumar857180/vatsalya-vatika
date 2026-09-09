@@ -1,10 +1,15 @@
 import api from './api';
 import { SiteSettingsData } from '../types';
+import { fallbackSiteSettings } from './fallbackData';
 
 export const siteSettingsService = {
   getSettings: async (): Promise<SiteSettingsData> => {
-    const res = await api.get('/settings');
-    return res.data.data;
+    try {
+      const res = await api.get('/settings');
+      return res.data?.data || fallbackSiteSettings;
+    } catch {
+      return fallbackSiteSettings;
+    }
   },
   
   updateSettings: async (data: Partial<SiteSettingsData>): Promise<SiteSettingsData> => {
@@ -12,3 +17,4 @@ export const siteSettingsService = {
     return res.data.data;
   }
 };
+

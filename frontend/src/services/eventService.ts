@@ -1,11 +1,21 @@
 import api from './api';
 import { EventItem, ApiResponse } from '../types';
+import { fallbackEvents } from './fallbackData';
 
 export const eventService = {
   getEvents: async (): Promise<EventItem[]> => {
-    const res = await api.get<ApiResponse<EventItem[]>>('/events');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<EventItem[]>>('/events');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackEvents;
+    } catch {
+      return fallbackEvents;
+    }
   },
+
 
   getEventById: async (id: string): Promise<EventItem | null> => {
     const res = await api.get<ApiResponse<EventItem>>(`/events/${id}`);

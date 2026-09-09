@@ -1,11 +1,21 @@
 import api from './api';
 import { MemoryVaultCard, ApiResponse } from '../types';
+import { fallbackMemoryVaultCards } from './fallbackData';
 
 export const memoryVaultService = {
   getCards: async (): Promise<MemoryVaultCard[]> => {
-    const res = await api.get<ApiResponse<MemoryVaultCard[]>>('/memory-vault');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<MemoryVaultCard[]>>('/memory-vault');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackMemoryVaultCards;
+    } catch {
+      return fallbackMemoryVaultCards;
+    }
   },
+
 
   getCardById: async (id: string): Promise<MemoryVaultCard> => {
     const res = await api.get<ApiResponse<MemoryVaultCard>>(`/memory-vault/${id}`);

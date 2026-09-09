@@ -1,11 +1,21 @@
 import api from './api';
 import { StudentImage, ApiResponse } from '../types';
+import { fallbackStudentImages } from './fallbackData';
 
 export const studentImageService = {
   getAll: async (): Promise<StudentImage[]> => {
-    const res = await api.get<ApiResponse<StudentImage[]>>('/student-images');
-    return res.data.data || [];
+    try {
+      const res = await api.get<ApiResponse<StudentImage[]>>('/student-images');
+      const data = res.data.data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+      return fallbackStudentImages;
+    } catch {
+      return fallbackStudentImages;
+    }
   },
+
 
   create: async (data: { title: string; image: string; description: string }): Promise<StudentImage> => {
     const res = await api.post<ApiResponse<StudentImage>>('/student-images', data);

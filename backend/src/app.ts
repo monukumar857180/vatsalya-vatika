@@ -4,7 +4,9 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config/environment';
 import { connectDB } from './config/db';
+import { seedDatabase } from './services/seedService';
 import { errorHandler } from './middleware/errorHandler';
+
 
 import authRoutes from './routes/authRoutes';
 import eventRoutes from './routes/eventRoutes';
@@ -69,15 +71,17 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(sanitizeMiddleware);
 
-// Middleware to ensure DB connection is ready in serverless environments
+// Middleware to ensure DB connection is ready and seeded in serverless environments
 app.use(async (req, res, next) => {
   try {
     await connectDB();
+    await seedDatabase();
   } catch (err) {
-    // connectDB already logs warning and falls back
+    // connectDB already logs warning and falls back smoothly
   }
   next();
 });
+
 
 // Health Check API
 app.get('/api/health', (req, res) => {

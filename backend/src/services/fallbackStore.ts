@@ -149,7 +149,7 @@ class FallbackStore {
         _id: 'evt-1',
         title: 'Annual Value & Cultural Day',
         description: 'A vibrant celebration featuring traditional music, drama presentations, and inspirational lectures by respected scholars.',
-        image: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80',
+        image: '/IMG_2026.jpeg',
         date: 'October 24, 2026',
         category: 'Cultural Programs',
         location: 'Vatsalya Vatika Central Hall',
@@ -159,7 +159,7 @@ class FallbackStore {
         _id: 'evt-2',
         title: 'Inter-Ashram Youth Sports Championship',
         description: 'Students participate in athletics, kabaddi, yoga showcases, and team games promoting physical fitness and brotherhood.',
-        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=1200&q=80',
+        image: '/study.jpeg',
         date: 'November 12, 2026',
         category: 'Sports Activities',
         location: 'Ashram Sports Complex & Grounds',
@@ -169,7 +169,7 @@ class FallbackStore {
         _id: 'evt-3',
         title: 'Digital Literacy & Science Exhibition',
         description: 'Students demonstrate interactive computer projects, scientific models, and innovative solutions designed in our lab.',
-        image: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
+        image: '/om1.png',
         date: 'December 05, 2026',
         category: 'Educational Events',
         location: 'Computer & Science Block',
@@ -180,50 +180,50 @@ class FallbackStore {
     this.gallery = [
       {
         _id: 'gal-1',
-        title: 'Morning Yoga and Meditation',
-        image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80',
+        title: 'Morning Spiritual Assembly & Values',
+        image: '/om1.png',
         category: 'Activities',
-        description: 'Students begin their day with serene yoga and mindfulness exercises.',
+        description: 'Students gather for morning prayers, meditation, and chanting.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'gal-2',
-        title: 'Interactive Classroom Learning',
-        image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80',
+        title: 'Ashram Students in Classroom Learning',
+        image: '/IMG_2026.jpeg',
         category: 'Students',
-        description: 'Dedicated educators guiding 200+ students in foundational subjects.',
+        description: 'Dedicated educators guiding 200+ residential students in daily classes.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'gal-3',
-        title: 'Computer Science & Technology Lab',
-        image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+        title: 'Focused Study & Knowledge Sharing',
+        image: '/study.jpeg',
         category: 'Ashram',
-        description: 'Modern computer facilities empowering students with modern skills.',
+        description: 'Self-study sessions, group discussions, and conceptual learning.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'gal-4',
-        title: 'Annual Cultural Festival',
-        image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=1200&q=80',
+        title: 'Guruji Guiding Ashram Youth',
+        image: '/guruji.jpeg',
         category: 'Events',
-        description: 'Students celebrating cultural heritage with musical performances.',
+        description: 'Spiritual discourse, life values, and mentorship for youth character.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'gal-5',
-        title: 'Peaceful Ashram Campus Environment',
-        image: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?auto=format&fit=crop&w=1200&q=80',
+        title: 'Vatsalya Vatika Students Unity',
+        image: '/om1.png',
         category: 'Ashram',
-        description: 'Lush greenery and sacred spaces fostering calm and reflection.',
+        description: 'Lush greenery and sacred spaces fostering calm and brotherhood.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'gal-6',
-        title: 'Nutritious Meal Fellowship',
-        image: 'https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1200&q=80',
+        title: 'Dedicated Group Study & Fellowship',
+        image: '/study.jpeg',
         category: 'Activities',
-        description: 'Wholesome sattvic meals served fresh daily to all residential students.',
+        description: 'Students learning together with dedication and joy.',
         createdAt: new Date().toISOString()
       }
     ];
@@ -336,57 +336,77 @@ class FallbackStore {
       }
     ];
 
-    // Seed sample Memory Vault cards
-    const mvImages = [
-      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1502082553048-f009c37129b9?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1511632765486-a01980e01a18?auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=80',
+    // Seed sample Memory Vault cards using real ashram photos
+    this.memoryVaultCards = [
+      {
+        _id: 'mv-seed-1',
+        title: 'Serene Ashram Morning',
+        image: '/om1.png',
+        description: 'A peaceful view of the ashram campus at sunrise.',
+        category: 'Campus',
+        cardNumber: 1,
+        rotation: -3,
+        offsetX: 10,
+        offsetY: -5,
+        createdAt: new Date().toISOString()
+      },
+      {
+        _id: 'mv-seed-2',
+        title: 'Future Scholars',
+        image: '/IMG_2026.jpeg',
+        description: 'Bright smiles of students ready for morning classes.',
+        category: 'Students',
+        cardNumber: 2,
+        rotation: 4,
+        offsetX: -15,
+        offsetY: 8,
+        createdAt: new Date().toISOString()
+      },
+      {
+        _id: 'mv-seed-3',
+        title: 'Study & Growth',
+        image: '/study.jpeg',
+        description: 'Students learning together with dedication and joy.',
+        category: 'Activities',
+        cardNumber: 3,
+        rotation: -2,
+        offsetX: 5,
+        offsetY: 12,
+        createdAt: new Date().toISOString()
+      },
+      {
+        _id: 'mv-seed-4',
+        title: 'Guruji\'s Guidance',
+        image: '/guruji.jpeg',
+        description: 'Spiritual wisdom and mentorship shaping young lives.',
+        category: 'Events',
+        cardNumber: 4,
+        rotation: 3,
+        offsetX: -8,
+        offsetY: -10,
+        createdAt: new Date().toISOString()
+      }
     ];
-    const mvCategories: StoreMemoryVault['category'][] = ['Campus', 'Students', 'Activities', 'Nature', 'Events', 'Facilities'];
-    const mvTitles = ['Serene Courtyard', 'Future Scholars', 'Sports Fellowship', 'Morning Dew', 'Annual Celebration', 'Digital Science Lab'];
-    const mvDescs = [
-      'A peaceful view of the ashram campus at sunrise.',
-      'Bright smiles of students ready for morning classes.',
-      'Students enjoying team sports on the ashram ground.',
-      'Lush greenery and sacred trees of the ashram campus.',
-      'Annual day celebrations with cultural performances.',
-      'Well-equipped science and digital technology lab.',
-    ];
-    this.memoryVaultCards = mvImages.map((img, i) => ({
-      _id: `mv-seed-${i + 1}`,
-      title: mvTitles[i],
-      image: img,
-      description: mvDescs[i],
-      category: mvCategories[i],
-      cardNumber: i + 1,
-      rotation: (i % 2 === 0 ? 1 : -1) * (2 + (i % 6) * 2.5),
-      offsetX: Math.sin((i + 1) * 1.3) * 30,
-      offsetY: Math.cos((i + 1) * 1.7) * 20,
-      createdAt: new Date().toISOString(),
-    }));
 
     this.studentImages = [
       {
         _id: 'default-1',
         title: '📚 Education',
-        image: 'https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80',
+        image: '/IMG_2026.jpeg',
         description: 'Formal schooling support, interactive digital science labs, language literacy, homework assistance, and conceptual clarity.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'default-2',
         title: '⚽ Activities',
-        image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?auto=format&fit=crop&w=800&q=80',
+        image: '/om1.png',
         description: 'Daily outdoor sports tournaments, athletics, yoga sessions, classical music, drama, and artistic creative workshops.',
         createdAt: new Date().toISOString()
       },
       {
         _id: 'default-3',
         title: '🌱 Personal Growth',
-        image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=800&q=80',
+        image: '/study.jpeg',
         description: 'Value-based life lessons, emotional care, leadership qualities, environmental responsibility, and spiritual mindfulness.',
         createdAt: new Date().toISOString()
       }

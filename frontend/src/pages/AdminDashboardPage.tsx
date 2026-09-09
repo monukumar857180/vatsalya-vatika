@@ -61,6 +61,7 @@ import { memoryVaultService } from '../services/memoryVaultService';
 import { studentImageService } from '../services/studentImageService';
 import { carouselService } from '../services/carouselService';
 import { donationSettingsService, DonationSettings } from '../services/donationSettingsService';
+import api from '../services/api';
 import toast from 'react-hot-toast';
 
 const DEFAULT_DESCRIPTIONS: Record<string, string> = {
@@ -216,13 +217,154 @@ export const AdminDashboardPage: React.FC = () => {
   const [showContributionModal, setShowContributionModal] = useState(false);
   const [contributionForm, setContributionForm] = useState({ name: '', email: '', amount: 0, purpose: 'General Support', paymentStatus: 'completed', paymentRef: '' });
 
+  const [dbStatus, setDbStatus] = useState<'connected' | 'fallback' | 'checking'>('checking');
+  const loadedTabs = useRef<Set<string>>(new Set());
+
+  const checkDbHealth = useCallback(async () => {
+    try {
+      const res = await api.get('/health');
+      if (res.data?.isMongoConnected || res.data?.database === 'connected') {
+        setDbStatus('connected');
+      } else {
+        setDbStatus('fallback');
+      }
+    } catch {
+      setDbStatus('fallback');
+    }
+  }, []);
+
+  const loadTabData = useCallback(async (tabName: string, force = false) => {
+    if (!force && loadedTabs.current.has(tabName)) {
+      return;
+    }
+    try {
+      switch (tabName) {
+        case 'events': {
+          const data = await eventService.getEvents().catch(() => []);
+          setEvents(data);
+          break;
+        }
+        case 'gallery': {
+          const data = await galleryService.getGallery().catch(() => []);
+          setGallery(data);
+          break;
+        }
+        case 'memoryvault': {
+          const data = await memoryVaultService.getCards().catch(() => []);
+          setMemoryVaultCards(data);
+          break;
+        }
+        case 'facilities': {
+          const data = await facilityService.getFacilities().catch(() => []);
+          setFacilities(data);
+          break;
+        }
+        case 'messages': {
+          const data = await contactService.getContacts().catch(() => []);
+          setContacts(data);
+          break;
+        }
+        case 'contributions': {
+          const data = await contributionService.getContributions().catch(() => []);
+          setContributions(data);
+          break;
+        }
+        case 'donation_settings': {
+          const data = await donationSettingsService.getSettings().catch(() => null);
+          setDonationSettings(data);
+          break;
+        }
+        case 'reviews': {
+          const data = await reviewService.getAllReviews().catch(() => []);
+          setReviews(data);
+          break;
+        }
+        case 'users': {
+          const data = await authService.getRegisteredUsers().catch(() => []);
+          setRegisteredUsers(data);
+          break;
+        }
+        case 'settings': {
+          const data = await siteSettingsService.getSettings().catch(() => null);
+          if (data) setSiteSettings(data);
+          break;
+        }
+        case 'our_students': {
+          const data = await studentImageService.getAll().catch(() => []);
+          setStudentImages(data);
+          break;
+        }
+        case 'carousel': {
+          const data = await carouselService.getImages().catch(() => []);
+          setCarouselImages(data);
+          break;
+        }
+        case 'activity': {
+          const [acts, unread] = await Promise.all([
+            activityService.getActivities().catch(() => []),
+            activityService.getUnreadCount().catch(() => 0)
+          ]);
+          setActivities(acts);
+          setUnreadCount(unread);
+          break;
+        }
+      }
+      loadedTabs.current.add(tabName);
+    } catch (err) {
+      console.error(`Failed loading tab ${tabName}:`, err);
+    }
+  }, []);
+
+  const loadInitialData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [eventsData, galleryData, contactsData, contributionsData, unread] = await Promise.all([
+        eventService.getEvents().catch(() => []),
+        galleryService.getGallery().catch(() => []),
+        contactService.getContacts().catch(() => []),
+        contributionService.getContributions().catch(() => []),
+        activityService.getUnreadCount().catch(() => 0)
+      ]);
+      setEvents(eventsData);
+      setGallery(galleryData);
+      setContacts(contactsData);
+      setContributions(contributionsData);
+      setUnreadCount(unread);
+
+      loadedTabs.current.add('events');
+      loadedTabs.current.add('gallery');
+      loadedTabs.current.add('messages');
+      loadedTabs.current.add('contributions');
+    } catch (err) {
+      console.error('Failed loading initial data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const loadAllData = async () => {
+    loadedTabs.current.clear();
+    setLoading(true);
+    try {
+      await loadInitialData();
+      await loadTabData(activeTab, true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') {
       navigate('/');
       return;
     }
-    loadAllData();
-  }, [isAuthenticated, user, navigate]);
+    loadInitialData();
+    checkDbHealth();
+  }, [isAuthenticated, user, navigate, loadInitialData, checkDbHealth]);
+
+  useEffect(() => {
+    loadTabData(activeTab);
+  }, [activeTab, loadTabData]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -239,53 +381,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await carouselService.reorderImages(reordered.map(i => i._id));
       toast.success('Order saved!');
-    } catch { toast.error('Failed to save order'); loadAllData(); }
-  };
-
-  const loadAllData = async () => {
-    setLoading(true);
-    try {
-      const [
-        eventsData, galleryData, facilitiesData, contactsData,
-        contributionsData, usersData, settingsData, reviewsData,
-        activitiesData, unread, memoryVaultData, studentImagesData,
-        carouselData, donationData
-      ] = await Promise.all([
-        eventService.getEvents().catch(() => []),
-        galleryService.getGallery().catch(() => []),
-        facilityService.getFacilities().catch(() => []),
-        contactService.getContacts().catch(() => []),
-        contributionService.getContributions().catch(() => []),
-        authService.getRegisteredUsers().catch(() => []),
-        siteSettingsService.getSettings().catch(() => null),
-        reviewService.getAllReviews().catch(() => []),
-        activityService.getActivities().catch(() => []),
-        activityService.getUnreadCount().catch(() => 0),
-        memoryVaultService.getCards().catch(() => []),
-        studentImageService.getAll().catch(() => []),
-        carouselService.getImages().catch(() => []),
-        donationSettingsService.getSettings().catch(() => null)
-      ]);
-
-      setEvents(eventsData);
-      setGallery(galleryData);
-      setFacilities(facilitiesData);
-      setContacts(contactsData);
-      setContributions(contributionsData);
-      setRegisteredUsers(usersData);
-      if (settingsData) setSiteSettings(settingsData);
-      setReviews(reviewsData);
-      setActivities(activitiesData);
-      setUnreadCount(unread);
-      setMemoryVaultCards(memoryVaultData);
-      setStudentImages(studentImagesData);
-      setCarouselImages(carouselData);
-      setDonationSettings(donationData);
-    } catch (err) {
-      console.error('Failed loading admin data:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Failed to save order'); loadTabData('carousel', true); }
   };
 
   // --- MEMORY VAULT CRUD ---
@@ -312,7 +408,7 @@ export const AdminDashboardPage: React.FC = () => {
       setEditingVaultCard(null);
       setVaultForm({ title: '', image: '', description: '', category: 'Memories', focalPoint: { x: 50, y: 50 } });
       setVaultPreview(false);
-      loadAllData();
+      loadTabData('memoryvault', true);
     } catch (err) {
       toast.error('Failed to save memory card');
     }
@@ -323,7 +419,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await memoryVaultService.deleteCard(id);
       toast.success('Memory card removed');
-      loadAllData();
+      loadTabData('memoryvault', true);
     } catch (err) {
       toast.error('Failed to delete memory card');
     }
@@ -342,46 +438,48 @@ export const AdminDashboardPage: React.FC = () => {
     setShowVaultModal(true);
   };
 
-  // Helper to handle local file upload to Base64 Data URL
-  const handleFileUpload = (file: File, callback: (dataUrl: string) => void) => {
+  // Helper to handle local file upload with canvas compression to lightweight Base64 Data URL (under 250KB)
+  const handleFileUpload = (file: File, callback: (dataUrl: string) => void, maxDimension = 1000, quality = 0.75) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size exceeds 5MB limit.');
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.error('Unsupported format. Please upload JPG, PNG, or WebP.');
       return;
     }
     const reader = new FileReader();
     reader.onload = (e) => {
-      if (e.target?.result) {
-        callback(e.target.result as string);
-        toast.success('Image file loaded successfully!');
-      }
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxDimension / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * scale));
+        canvas.height = Math.max(1, Math.round(img.height * scale));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          callback(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        const sizeKB = Math.round((compressed.length * 3 / 4) / 1024);
+        callback(compressed);
+        toast.success(`Image optimized & loaded (${sizeKB} KB)!`);
+      };
+      img.onerror = () => {
+        toast.error('Failed to process image file.');
+      };
+      img.src = e.target?.result as string;
     };
+    reader.onerror = () => toast.error('Failed to read image file.');
     reader.readAsDataURL(file);
   };
 
   // Helper to process and validate QR code upload for Donation Settings
   const processQrCodeFile = (file: File) => {
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5 MB.');
-      return;
-    }
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Unsupported file format. Please upload PNG, JPG, JPEG, or WebP.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setDonationSettings(prev => prev ? { ...prev, qrCodeImage: e.target!.result as string } : null);
-        toast.success('QR code loaded! Click "Save Securely" to save changes.');
-      }
-    };
-    reader.onerror = () => {
-      toast.error('Failed to read image file.');
-    };
-    reader.readAsDataURL(file);
+    handleFileUpload(file, (dataUrl) => {
+      setDonationSettings(prev => prev ? { ...prev, qrCodeImage: dataUrl } : null);
+    }, 800, 0.85);
   };
 
   const handleQrCodeFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -410,7 +508,7 @@ export const AdminDashboardPage: React.FC = () => {
       setShowStudentImageModal(false);
       setEditingStudentImage(null);
       setStudentImageForm({ title: '', image: '', description: '', focalPoint: { x: 50, y: 50 } });
-      loadAllData();
+      loadTabData('our_students', true);
     } catch (err) {
       toast.error('Failed to save student entry');
     }
@@ -421,7 +519,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await studentImageService.remove(id);
       toast.success('Student entry deleted');
-      loadAllData();
+      loadTabData('our_students', true);
     } catch (err) {
       toast.error('Failed to delete student entry');
     }
@@ -445,7 +543,7 @@ export const AdminDashboardPage: React.FC = () => {
       setShowEventModal(false);
       setEditingEvent(null);
       setEventForm({ title: '', description: '', image: '', date: '', category: 'Educational Events', location: 'Vatsalya Vatika Campus', focalPoint: { x: 50, y: 50 } });
-      loadAllData();
+      loadTabData('events', true);
     } catch (err) {
       toast.error('Failed to save event');
     }
@@ -456,7 +554,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await eventService.deleteEvent(id);
       toast.success('Event deleted successfully');
-      loadAllData();
+      loadTabData('events', true);
     } catch (err) {
       toast.error('Failed to delete event');
     }
@@ -480,7 +578,7 @@ export const AdminDashboardPage: React.FC = () => {
       setShowGalleryModal(false);
       setEditingGalleryItem(null);
       setGalleryForm({ title: '', image: '', category: 'Ashram', description: '', focalPoint: { x: 50, y: 50 } });
-      loadAllData();
+      loadTabData('gallery', true);
     } catch (err) {
       toast.error('Failed to add gallery item');
     }
@@ -491,7 +589,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await galleryService.deleteGalleryItem(id);
       toast.success('Gallery image deleted');
-      loadAllData();
+      loadTabData('gallery', true);
     } catch (err) {
       toast.error('Failed to delete gallery image');
     }
@@ -505,7 +603,7 @@ export const AdminDashboardPage: React.FC = () => {
       toast.success('Facility added successfully');
       setShowFacilityModal(false);
       setFacilityForm({ title: '', description: '', icon: 'BookOpen', focalPoint: { x: 50, y: 50 } });
-      loadAllData();
+      loadTabData('facilities', true);
     } catch (err) {
       toast.error('Failed to add facility');
     }
@@ -516,7 +614,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await facilityService.deleteFacility(id);
       toast.success('Facility deleted');
-      loadAllData();
+      loadTabData('facilities', true);
     } catch (err) {
       toast.error('Failed to delete facility');
     }
@@ -527,7 +625,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await contactService.updateStatus(id, status);
       toast.success(`Message marked as ${status}`);
-      loadAllData();
+      loadTabData('messages', true);
     } catch (err) {
       toast.error('Failed to update status');
     }
@@ -538,7 +636,7 @@ export const AdminDashboardPage: React.FC = () => {
     try {
       await contactService.deleteContact(id);
       toast.success('Message deleted');
-      loadAllData();
+      loadTabData('messages', true);
     } catch (err) {
       toast.error('Failed to delete message');
     }
@@ -563,7 +661,7 @@ export const AdminDashboardPage: React.FC = () => {
       toast.success('Contribution recorded successfully');
       setShowContributionModal(false);
       setContributionForm({ name: '', email: '', amount: 0, purpose: 'General Support', paymentStatus: 'completed', paymentRef: '' });
-      loadAllData();
+      loadTabData('contributions', true);
     } catch (err) {
       toast.error('Failed to record contribution');
     }
@@ -582,9 +680,44 @@ export const AdminDashboardPage: React.FC = () => {
               <span className="text-xl sm:text-2xl font-bold drop-shadow-[0_0_8px_rgba(251,191,36,1)] leading-none mt-0.5 select-none">ॐ</span>
             </div>
             <div className="min-w-0">
-              <h1 className="font-heading font-bold text-xs sm:text-base lg:text-xl text-ashram-green dark:text-darkAshram-gold leading-tight truncate">
-                <span className="hidden sm:inline">Vatsalya Vatika </span>Admin Dashboard
-              </h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-heading font-bold text-xs sm:text-base lg:text-xl text-ashram-green dark:text-darkAshram-gold leading-tight truncate">
+                  <span className="hidden sm:inline">Vatsalya Vatika </span>Admin Dashboard
+                </h1>
+                <div
+                  className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold border transition-all ${
+                    dbStatus === 'connected'
+                      ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800'
+                      : dbStatus === 'fallback'
+                      ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800'
+                      : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'
+                  }`}
+                  title={
+                    dbStatus === 'connected'
+                      ? 'MongoDB Atlas is connected and syncing live'
+                      : dbStatus === 'fallback'
+                      ? 'Running with built-in high performance fallback store'
+                      : 'Checking database connectivity...'
+                  }
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      dbStatus === 'connected'
+                        ? 'bg-emerald-500 animate-pulse'
+                        : dbStatus === 'fallback'
+                        ? 'bg-amber-500'
+                        : 'bg-slate-400 animate-ping'
+                    }`}
+                  />
+                  <span>
+                    {dbStatus === 'connected'
+                      ? 'Atlas Connected'
+                      : dbStatus === 'fallback'
+                      ? 'Local Fallback'
+                      : 'Checking...'}
+                  </span>
+                </div>
+              </div>
               <p className="text-[10px] sm:text-xs text-ashram-muted dark:text-darkAshram-muted truncate">
                 Welcome, {user?.name || 'Administrator'}
               </p>
@@ -596,16 +729,16 @@ export const AdminDashboardPage: React.FC = () => {
               onClick={async () => {
                 const toastId = toast.loading('Synchronizing & uploading all ashram images to MongoDB Atlas...');
                 try {
-                  const res = await fetch('/api/seed', { method: 'POST' });
-                  const data = await res.json();
-                  if (data.success) {
+                  const res = await api.post('/seed');
+                  if (res.data?.success) {
                     toast.success('All images, carousels, and events uploaded to Database!', { id: toastId });
+                    checkDbHealth();
                     await loadAllData();
                   } else {
-                    toast.error(data.message || 'Sync failed', { id: toastId });
+                    toast.error(res.data?.message || 'Sync failed', { id: toastId });
                   }
                 } catch (err: any) {
-                  toast.error('Sync failed: ' + err.message, { id: toastId });
+                  toast.error('Sync failed: ' + (err.response?.data?.message || err.message), { id: toastId });
                 }
               }}
               className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm shrink-0 whitespace-nowrap"
@@ -1033,12 +1166,7 @@ export const AdminDashboardPage: React.FC = () => {
                           <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (file) {
-                              if (file.size > 5 * 1024 * 1024) { toast.error('File exceeds 5MB limit.'); return; }
-                              const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-                              if (!allowedTypes.includes(file.type)) { toast.error('Only JPG, PNG, WebP are accepted.'); return; }
-                              const reader = new FileReader();
-                              reader.onload = (ev) => { if (ev.target?.result) setCarouselForm(f => ({ ...f, image: ev.target!.result as string })); };
-                              reader.readAsDataURL(file);
+                              handleFileUpload(file, (dataUrl) => setCarouselForm(f => ({ ...f, image: dataUrl })));
                             }
                           }} className="w-full text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-ashram-saffron/10 file:text-ashram-saffron file:font-semibold hover:file:bg-ashram-saffron/20 cursor-pointer" />
                           <div className="text-center text-xs text-ashram-muted">or</div>

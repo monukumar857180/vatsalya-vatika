@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { config } from './config/environment';
-import { connectDB } from './config/db';
+import { connectDB, checkMongoConnected } from './config/db';
 import { seedDatabase } from './services/seedService';
 import { errorHandler } from './middleware/errorHandler';
 
@@ -38,29 +38,42 @@ app.use(cors({
     // Allow requests with no origin (like mobile apps, curl, server-to-server or same-origin)
     if (!origin) return callback(null, true);
 
-    const allowed = [
+    const allowedOrigins = [
       config.clientUrl,
       'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:5000',
-      'http://localhost:3000'
+      'http://localhost:3000',
+      'http://localhost:4173',
+      'https://vatsalya-vatika.vercel.app'
     ];
 
-    if (allowed.includes(origin) || origin.endsWith('.vercel.app')) {
-      return callback(null, true);
-    }
+    const isVercelPreview = /^https:\/\/.*-monukumar857180s-projects\.vercel\.app$/.test(origin) ||
+                            /^https:\/\/.*\.vercel\.app$/.test(origin);
 
-    return callback(null, true); // Allow all valid web clients
+    if (allowedOrigins.includes(origin) || isVercelPreview) {
+      callback(null, true);
+    } else {
+      callback(null, true); // Permissive in dev to avoid CORS friction
+    }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 
-// Rate Limiting on authentication endpoints
+// General Rate Limiter
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many requests, please try again later.' }
+});
+app.use('/api/', generalLimiter);
+
+// Strict Rate Limiter for sensitive routes (Auth, Contributions, Contacts)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  max: 50,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, message: 'Too many login attempts. Please try again in 15 minutes.' }
@@ -71,11 +84,15 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(sanitizeMiddleware);
 
-// Middleware to ensure DB connection is ready and seeded in serverless environments
+// Middleware to ensure DB connection is ready without re-seeding on every request
+let initialSeedDone = false;
 app.use(async (req, res, next) => {
   try {
-    await connectDB();
-    await seedDatabase();
+    const connected = await connectDB();
+    if (connected && !initialSeedDone) {
+      initialSeedDone = true;
+      seedDatabase().catch((e: any) => console.warn('Background seed notice:', e.message));
+    }
   } catch (err) {
     // connectDB already logs warning and falls back smoothly
   }
@@ -85,9 +102,12 @@ app.use(async (req, res, next) => {
 
 // Health Check API
 app.get('/api/health', (req, res) => {
+  const isDbConnected = checkMongoConnected();
   res.status(200).json({
     success: true,
     message: 'Vatsalya Vatika Ashram REST API is healthy and running.',
+    database: isDbConnected ? 'connected' : 'fallback',
+    isMongoConnected: isDbConnected,
     environment: config.nodeEnv,
     timestamp: new Date().toISOString()
   });

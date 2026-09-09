@@ -25,7 +25,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenContributeModal }) => {
       {/* Background Image with Dark & Golden Overlay */}
       <div className="absolute inset-0 z-0">
         <img
-          src="..\public\om1.png"
+          src="/om1.png"
           alt="Vatsalya Vatika Ashram Students"
           className="w-full h-full object-cover object-center transform scale-105 transition-transform duration-10000 animate-pulse-glow"
         />

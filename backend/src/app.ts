@@ -93,6 +93,32 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Explicit Database Seed API to upload/seed all ashram images & data into MongoDB Atlas
+app.post('/api/seed', async (req, res) => {
+  try {
+    const result = await seedDatabase(true); // force seed if requested
+    res.status(200).json({
+      success: true,
+      message: 'All ashram images, carousels, events, facilities, and records successfully uploaded and synchronized with database!',
+      details: result
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+app.get('/api/seed', async (req, res) => {
+  try {
+    const result = await seedDatabase(true);
+    res.status(200).json({
+      success: true,
+      message: 'All ashram images, carousels, events, facilities, and records successfully uploaded and synchronized with database!',
+      details: result
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/events', eventRoutes);

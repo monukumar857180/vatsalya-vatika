@@ -592,6 +592,29 @@ export const AdminDashboardPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <button
+              onClick={async () => {
+                const toastId = toast.loading('Synchronizing & uploading all ashram images to MongoDB Atlas...');
+                try {
+                  const res = await fetch('/api/seed', { method: 'POST' });
+                  const data = await res.json();
+                  if (data.success) {
+                    toast.success('All images, carousels, and events uploaded to Database!', { id: toastId });
+                    await loadAllData();
+                  } else {
+                    toast.error(data.message || 'Sync failed', { id: toastId });
+                  }
+                } catch (err: any) {
+                  toast.error('Sync failed: ' + err.message, { id: toastId });
+                }
+              }}
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors shadow-sm shrink-0 whitespace-nowrap"
+              title="Upload / Seed All Images & Records into MongoDB Atlas Database"
+            >
+              <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+              <span>Sync Database</span>
+            </button>
+
             <Link
               to="/"
               className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-semibold bg-ashram-cream dark:bg-darkAshram-surface border border-ashram-border dark:border-darkAshram-border hover:bg-ashram-border/50 dark:hover:bg-darkAshram-border/50 text-ashram-charcoal dark:text-darkAshram-text transition-colors shadow-sm shrink-0 whitespace-nowrap"

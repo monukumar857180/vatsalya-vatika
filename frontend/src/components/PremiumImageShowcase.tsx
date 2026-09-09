@@ -135,8 +135,12 @@ export const PremiumImageShowcase: React.FC = () => {
                   src={item.image}
                   alt={item.title || "Spiritual Gallery Image"}
                   loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80';
+                  }}
                   className="w-full h-full object-cover transition-all duration-[1500ms] ease-out opacity-90 group-hover/card:opacity-100 group-hover/card:scale-105"
                 />
+
                 
                 {/* Always-on subtle bottom gradient for better contrast */}
                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-60"></div>

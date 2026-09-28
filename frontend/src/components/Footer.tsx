@@ -76,13 +76,13 @@ export const Footer: React.FC = () => {
 
             {/* Social Media Icons */}
             <div className="flex items-center gap-3 pt-2">
-              <a href="https://www.instagram.com/vatikavatsalya?igsi=MTNkY2lwams3cXFoaw==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
+              <a href="https://www.instagram.com/vatsalyavatika?stkn=bXZqdGtndGJjZGhz" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
                 <Instagram className="w-4 h-4" />
               </a>
-              <a href="https://www.facebook.com/share/1DDX9BcbMk/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
+              <a href="https://www.facebook.com/share/19LgkpnEG6/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
                 <Facebook className="w-4 h-4" />
               </a>
-              <a href="https://youtu.be/OgxRue7P8hs?si=pozFXRx7tkfbLYY3" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
+              <a href="https://youtube.com/@vatsalyavatika-f7l?si=vJ86Rcp32gfjCbFo" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
                 <Youtube className="w-4 h-4" />
               </a>
               <a href={whatsappHref} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-9 h-9 rounded-full bg-white/10 hover:bg-ashram-saffron flex items-center justify-center text-white transition-colors">
